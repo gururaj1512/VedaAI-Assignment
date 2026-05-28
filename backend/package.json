@@ -27,6 +27,6 @@
     "@types/node": "^20.14.2",
     "@types/pdfkit": "^0.13.4",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "5.4.5"
   }
 }
