@@ -917,6 +917,10 @@ body {
   margin: 0 auto 20px auto;
 }
 
+.action-top-bar.failed {
+  background-color: #E53935;
+}
+
 .ai-status-text {
   font-size: 13px;
   font-weight: 550;

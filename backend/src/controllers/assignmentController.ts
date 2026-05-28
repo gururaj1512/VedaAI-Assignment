@@ -102,6 +102,12 @@ export const createAssignment = async (
     // Enqueue the generation task
     await questionQueue.add('generateQuestions', {
       assignmentId: assignment._id.toString()
+    }, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 5000 // wait 5s, then 10s, etc.
+      }
     });
 
     res.status(201).json({
@@ -231,6 +237,12 @@ export const regenerateAssignment = async (
     // Re-enqueue the generation job
     await questionQueue.add('generateQuestions', {
       assignmentId: assignment._id.toString()
+    }, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 5000
+      }
     });
 
     res.status(200).json({

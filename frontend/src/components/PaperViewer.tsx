@@ -104,12 +104,18 @@ export default function PaperViewer() {
 
       {/* Live progress header */}
       {selectedAssignment.status !== 'completed' && (
-        <div className="action-top-bar">
+        <div className={`action-top-bar ${selectedAssignment.status === 'failed' ? 'failed' : ''}`}>
           <span className="ai-status-text">
-            Status: {selectedAssignment.status === 'generating' ? '⚡ Generating questions...' : '⌛ Pending in queue...'}
+            {selectedAssignment.status === 'failed' 
+              ? '❌ Generation Failed' 
+              : selectedAssignment.status === 'generating' 
+                ? '⚡ Generating questions...' 
+                : '⌛ Pending in queue...'}
           </span>
           <span className="text-xs opacity-85">
-            {progressLog || 'Waiting for background queue...'}
+            {selectedAssignment.status === 'failed' 
+              ? 'AI generation failed. Please see details below.' 
+              : progressLog || 'Waiting for background queue...'}
           </span>
         </div>
       )}
@@ -152,11 +158,32 @@ export default function PaperViewer() {
           </div>
         </div>
 
-        {/* Loading skeleton or empty paper state */}
-        {selectedAssignment.status !== 'completed' && (
+        {/* Loading skeleton */}
+        {selectedAssignment.status !== 'completed' && selectedAssignment.status !== 'failed' && (
           <div className="flex flex-col gap-6 items-center justify-center py-20 text-gray-400">
             <div className="spinner"></div>
             <p className="text-sm font-semibold">Generating Question Paper content via Gemini AI...</p>
+          </div>
+        )}
+
+        {/* Failed state */}
+        {selectedAssignment.status === 'failed' && (
+          <div className="flex flex-col gap-6 items-center justify-center py-16 text-center px-6">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-2">
+              <span className="text-2xl font-bold">⚠️</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Question Paper Generation Failed</h3>
+              <p className="text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                {selectedAssignment.error || 'An unexpected error occurred during generation.'}
+              </p>
+            </div>
+            <button 
+              className="px-6 py-2.5 bg-gray-900 text-white rounded-full font-bold text-sm hover:bg-black transition-all cursor-pointer shadow-md mt-2"
+              onClick={handleRegenerate}
+            >
+              🔄 Try Again
+            </button>
           </div>
         )}
 

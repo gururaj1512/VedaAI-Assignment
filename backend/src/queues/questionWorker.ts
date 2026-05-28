@@ -48,24 +48,52 @@ export const questionWorker = new Worker(
     } catch (error: any) {
       console.error(`AI Question Generation Worker error:`, error);
 
-      // Update DB & notify frontend of error
+      let errorMessage = error.message || 'Unknown AI generation error';
       try {
-        const assignment = await Assignment.findById(assignmentId);
-        if (assignment) {
-          assignment.status = 'failed';
-          assignment.error = error.message || 'Unknown AI generation error';
-          await assignment.save();
-
-          emitAssignmentUpdate(assignmentId, 'assignment:status', {
-            status: 'failed',
-            error: assignment.error
-          });
+        // Parse stringified JSON errors (e.g. Gemini 503 unavailable status)
+        const parsed = JSON.parse(errorMessage);
+        if (parsed.error && parsed.error.message) {
+          errorMessage = parsed.error.message;
+        } else if (parsed.message) {
+          errorMessage = parsed.message;
         }
-      } catch (dbErr) {
-        console.error('Failed to save worker error status to DB:', dbErr);
+      } catch (e) {
+        // Not a JSON string
       }
 
-      throw error; // rethrow for queue tracking
+      const attemptsMade = job.attemptsMade + 1;
+      const maxAttempts = job.opts.attempts || 1;
+
+      if (attemptsMade >= maxAttempts) {
+        // Final failure: Update DB & notify frontend of error
+        try {
+          const assignment = await Assignment.findById(assignmentId);
+          if (assignment) {
+            assignment.status = 'failed';
+            assignment.error = errorMessage;
+            await assignment.save();
+
+            emitAssignmentUpdate(assignmentId, 'assignment:status', {
+              status: 'failed',
+              error: assignment.error
+            });
+          }
+        } catch (dbErr) {
+          console.error('Failed to save worker error status to DB:', dbErr);
+        }
+      } else {
+        // Attempt failed, but retrying: notify frontend of the retry attempt
+        try {
+          emitAssignmentUpdate(assignmentId, 'assignment:status', {
+            status: 'generating',
+            progress: `API busy (503). Retrying paper generation (Attempt ${attemptsMade + 1} of ${maxAttempts})...`
+          });
+        } catch (wsErr) {
+          console.error('Failed to emit WebSocket retry status:', wsErr);
+        }
+      }
+
+      throw error; // rethrow to trigger BullMQ retry / backoff schedule
     }
   },
   { connection: redisConfig }
