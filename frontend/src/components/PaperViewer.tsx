@@ -79,21 +79,21 @@ export default function PaperViewer() {
 
             {downloadDropdown && (
               <div
-                className="absolute left-0 top-12 bg-white rounded-xl shadow-lg border border-gray-200 py-2 w-56 z-50 flex flex-col"
+                className="download-dropdown"
                 onMouseLeave={() => setDownloadDropdown(false)}
               >
                 <button
-                  className="px-4 py-2.5 text-left text-xs text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer font-bold transition-colors"
+                  className="download-dropdown-item"
                   onClick={() => handleDownload('student')}
                 >
-                  <FileText size={16} className="text-gray-400" />
+                  <FileText size={16} className="download-dropdown-icon" />
                   <span>Question Paper Only</span>
                 </button>
                 <button
-                  className="px-4 py-2.5 text-left text-xs text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer font-bold transition-colors border-t border-gray-50"
+                  className="download-dropdown-item with-key"
                   onClick={() => handleDownload('teacher')}
                 >
-                  <FileText size={16} className="text-orange-500" />
+                  <FileText size={16} className="download-dropdown-icon" />
                   <span>With Answer Key</span>
                 </button>
               </div>
